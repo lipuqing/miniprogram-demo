@@ -3,63 +3,85 @@ const cloud = require('wx-server-sdk')
 
 cloud.init()
 
-async function sendTemplateMessage(event) {
-  const {OPENID} = cloud.getWXContext()
+// 云函数入口函数
+exports.main = async (event, context) => {
+  console.log(event)
+  switch (event.action) {
+    case 'requestSubscribeMessage': {
+      return requestSubscribeMessage(event)
+    }
+    case 'sendSubscribeMessage': {
+      return sendSubscribeMessage(event)
+    }
+    case 'getWXACode': {
+      return getWXACode(event)
+    }
+    case 'getOpenData': {
+      return getOpenData(event)
+    }
+    default: {
+      return
+    }
+  }
+}
 
-  // 接下来将新增模板、发送模板消息、然后删除模板
-  // 注意：新增模板然后再删除并不是建议的做法，此处只是为了演示，模板 ID 应在添加后保存起来后续使用
-  const addResult = await cloud.openapi.templateMessage.addTemplate({
-    id: 'AT0002',
-    keywordIdList: [3, 4, 5]
-  })
+async function requestSubscribeMessage(event) {
+  // 此处为模板 ID，开发者需要到小程序管理后台 - 订阅消息 - 公共模板库中添加模板，
+  // 然后在我的模板中找到对应模板的 ID，填入此处
+  return '请到管理后台申请模板 ID 然后在此替换' // 如 'N_J6F05_bjhqd6zh2h1LHJ9TAv9IpkCiAJEpSw0PrmQ'
+}
 
-  const templateId = addResult.result.templateId
+async function sendSubscribeMessage(event) {
+  const { OPENID } = cloud.getWXContext()
 
-  const sendResult = await cloud.openapi.templateMessage.send({
+  const { templateId } = event
+
+  const sendResult = await cloud.openapi.subscribeMessage.send({
     touser: OPENID,
     templateId,
-    formId: event.formId,
-    page: 'page/cloud/pages/scf-openapi/scf-openapi',
+    miniprogram_state: 'developer',
+    page: 'pages/openapi/openapi',
+    // 此处字段应修改为所申请模板所要求的字段
     data: {
-      keyword1: {
-        value: '未名咖啡屋',
+      thing1: {
+        value: '咖啡',
       },
-      keyword2: {
-        value: '2019 年 1 月 1 日',
-      },
-      keyword3: {
-        value: '拿铁',
+      time3: {
+        value: '2020-01-01 00:00',
       },
     }
-  })
-
-  await cloud.openapi.templateMessage.deleteTemplate({
-    templateId,
   })
 
   return sendResult
 }
 
-async function getWXACode() {
-  const {result} = await cloud.openapi.wxacode.getUnlimited({
-    scene: 'x=1',
+async function getWXACode(event) {
+
+  // 此处将获取永久有效的小程序码，并将其保存在云文件存储中，最后返回云文件 ID 给前端使用
+
+  const wxacodeResult = await cloud.openapi.wxacode.get({
+    path: 'pages/openapi/openapi',
   })
 
-  // 此处返回 Base64 图片仅作为演示用，在实际开发中，
-  // 应上传图片至云文件存储，然后在小程序中通过云文件 ID 使用
-  return `data:${result.contentType};base64,${result.buffer.toString('base64')}`
+  const fileExtensionMatches = wxacodeResult.contentType.match(/\/([^\/]+)/)
+  const fileExtension = (fileExtensionMatches && fileExtensionMatches[1]) || 'jpg'
+
+  const uploadResult = await cloud.uploadFile({
+    // 云文件路径，此处为演示采用一个固定名称
+    cloudPath: `wxacode_default_openapi_page.${fileExtension}`,
+    // 要上传的文件内容可直接传入图片 Buffer
+    fileContent: wxacodeResult.buffer,
+  })
+
+  if (!uploadResult.fileID) {
+    throw new Error(`upload failed with empty fileID and storage server status code ${uploadResult.statusCode}`)
+  }
+
+  return uploadResult.fileID
 }
 
-// 云函数入口函数
-// eslint-disable-next-line
-exports.main = async (event) => {
-  switch (event.action) {
-    case 'sendTemplateMessage': {
-      return sendTemplateMessage(event)
-    }
-    case 'getWXACode': {
-      return getWXACode(event)
-    }
-    default: break
-  }
+async function getOpenData(event) {
+  return cloud.getOpenData({
+    list: event.openData.list,
+  })
 }

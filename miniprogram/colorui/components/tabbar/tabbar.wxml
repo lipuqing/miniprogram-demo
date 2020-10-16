@@ -1,0 +1,8 @@
+<view class="box">
+  <view class="icon">
+    主页
+  </view>
+  <view class="icon">
+    我的
+  </view>
+</view>

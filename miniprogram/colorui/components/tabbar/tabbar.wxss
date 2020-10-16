@@ -1,0 +1,14 @@
+/* colorui/components/cu-custom.wxss */
+.box{
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: #000;
+    color: #fff;
+    display: flex;
+    flex-direction: row;
+}
+.icon{
+    
+}

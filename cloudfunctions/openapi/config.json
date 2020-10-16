@@ -1,7 +1,9 @@
 {
   "permissions": {
     "openapi": [
-      "wxacode.getUnlimited",
+      "wxacode.get",
+      "subscribeMessage.send",
+      "subscribeMessage.addTemplate",
       "templateMessage.send",
       "templateMessage.addTemplate",
       "templateMessage.deleteTemplate",

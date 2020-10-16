@@ -1,68 +1,102 @@
-const config = require('./config')
-
-global.isDemo = true
+//app.js
 App({
-  onLaunch(opts) {
-    console.log('App Launch', opts)
-    if (!wx.cloud) {
-      console.error('请使用 2.2.3 或以上的基础库以使用云能力')
-    } else {
+  onLaunch: function() {
+    if (wx.cloud) {
       wx.cloud.init({
-        env: config.envId,
+        env: "dtf1v1-c6f838",
         traceUser: true,
       })
     }
-  },
-  onShow(opts) {
-    console.log('App Show', opts)
-  },
-  onHide() {
-    console.log('App Hide')
+    wx.getSystemInfo({
+      success: e => {
+        this.globalData.StatusBar = e.statusBarHeight;
+        let capsule = wx.getMenuButtonBoundingClientRect();
+		if (capsule) {
+		 	this.globalData.Custom = capsule;
+			this.globalData.CustomBar = capsule.bottom + capsule.top - e.statusBarHeight;
+		} else {
+			this.globalData.CustomBar = e.statusBarHeight + 50;
+		}
+      }
+    })
   },
   globalData: {
-    hasLogin: false,
-    openid: null
-  },
-  // lazy loading openid
-  getUserOpenId(callback) {
-    const self = this
-
-    if (self.globalData.openid) {
-      callback(null, self.globalData.openid)
-    } else {
-      wx.login({
-        success(data) {
-          wx.request({
-            url: config.openIdUrl,
-            data: {
-              code: data.code
-            },
-            success(res) {
-              console.log('拉取openid成功', res)
-              self.globalData.openid = res.data.openid
-              callback(null, self.globalData.openid)
-            },
-            fail(res) {
-              console.log('拉取用户openid失败，将无法正常使用开放接口等服务', res)
-              callback(res)
-            }
-          })
-        },
-        fail(err) {
-          console.log('wx.login 接口调用失败，将无法正常使用开放接口等服务', err)
-          callback(err)
-        }
-      })
-    }
-  },
-  // 通过云函数获取用户 openid，支持回调或 Promise
-  getUserOpenIdViaCloud() {
-    return wx.cloud.callFunction({
-      name: 'wxContext',
-      data: {}
-    }).then(res => {
-      this.globalData.openid = res.result.openid
-      return res.result.openid
-    })
+    ColorList: [{
+        title: '嫣红',
+        name: 'red',
+        color: '#e54d42'
+      },
+      {
+        title: '桔橙',
+        name: 'orange',
+        color: '#f37b1d'
+      },
+      {
+        title: '明黄',
+        name: 'yellow',
+        color: '#fbbd08'
+      },
+      {
+        title: '橄榄',
+        name: 'olive',
+        color: '#8dc63f'
+      },
+      {
+        title: '森绿',
+        name: 'green',
+        color: '#39b54a'
+      },
+      {
+        title: '天青',
+        name: 'cyan',
+        color: '#1cbbb4'
+      },
+      {
+        title: '海蓝',
+        name: 'blue',
+        color: '#0081ff'
+      },
+      {
+        title: '姹紫',
+        name: 'purple',
+        color: '#6739b6'
+      },
+      {
+        title: '木槿',
+        name: 'mauve',
+        color: '#9c26b0'
+      },
+      {
+        title: '桃粉',
+        name: 'pink',
+        color: '#e03997'
+      },
+      {
+        title: '棕褐',
+        name: 'brown',
+        color: '#a5673f'
+      },
+      {
+        title: '玄灰',
+        name: 'grey',
+        color: '#8799a3'
+      },
+      {
+        title: '草灰',
+        name: 'gray',
+        color: '#aaaaaa'
+      },
+      {
+        title: '墨黑',
+        name: 'black',
+        color: '#333333'
+      },
+      {
+        title: '雅白',
+        name: 'white',
+        color: '#ffffff'
+      },
+    ]
   }
 })
+
